@@ -2,13 +2,14 @@ package test
 
 import (
 	"database/sql"
-	"github.com/circleci/cci-demo-go"
-	_ "github.com/mattes/migrate/driver/postgres"
-	"github.com/mattes/migrate/migrate"
-	"github.com/stretchr/testify/require"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/circleci/cci-demo-go/service"
+	_ "github.com/mattes/migrate/driver/postgres"
+	"github.com/mattes/migrate/migrate"
+	"github.com/stretchr/testify/require"
 )
 
 // Env provides access to all services used in tests, like the database, our server, and an HTTP client for performing
@@ -43,10 +44,14 @@ func SetupEnv(t *testing.T) *Env {
 
 // SetupDB initializes a test database, performing all migrations.
 func SetupDB(t *testing.T) *service.Database {
-	databaseUrl := os.Getenv("DATABASE_URL")
-	require.NotEmpty(t, databaseUrl, "DATABASE_URL must be set!")
+	databaseUrl := os.Getenv("CONTACTS_DB_URL")
+	require.NotEmpty(t, databaseUrl, "CONTACTS_DB_URL must be set!")
 
-	allErrors, ok := migrate.ResetSync(databaseUrl, "./db/migrations")
+	sqlFiles := "./db/migrations"
+	if sqlFilesEnv := os.Getenv("CONTACTS_DB_MIGRATIONS"); sqlFilesEnv != "" {
+		sqlFiles = sqlFilesEnv
+	}
+	allErrors, ok := migrate.ResetSync(databaseUrl, sqlFiles)
 	require.True(t, ok, "Failed to migrate database %v", allErrors)
 
 	db, err := sql.Open("postgres", databaseUrl)
