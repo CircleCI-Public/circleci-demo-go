@@ -17,6 +17,13 @@ jobs:
     steps:
       - checkout
 
+      - run: mkdir -p $TEST_RESULTS
+
+      # This should be in cursom primary image, here is just for the sake of explanation
+      - run:
+          name: Install JUnit
+          command: go get github.com/jstemmer/go-junit-report
+
       - run:
           name: Waiting for Postgres to be ready
           command: |
@@ -26,14 +33,7 @@ jobs:
               echo -n .
               sleep 1
             done
-            echo Failed waiting for Postgress && exit 1
-
-      - run: mkdir -p $TEST_RESULTS
-
-      # This should be in cursom primary image, here is just for the sake of explanation
-      - run:
-          name: Install JUnit
-          command: go get github.com/jstemmer/go-junit-report
+            echo Failed waiting for Postgres && exit 1
 
       - run:
           name: Run unit tests
@@ -41,10 +41,7 @@ jobs:
             CONTACTS_DB_URL: "postgres://ubuntu@localhost:5432/contacts?sslmode=disable"
             CONTACTS_DB_MIGRATIONS: /go/src/github.com/circleci/cci-demo-go/db/migrations
           command: |
-            set -ou pipefail
             trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
-            # Notice this `set -o pipefail`, this will cause script to fail if `make test` fails
-            # without this option script will return success regardless of testing result due to pipe after test command
             make test | tee ${TEST_RESULTS}/go-test.out
 
       - run:
