@@ -55,7 +55,7 @@ jobs:
 
       - run:
           name: Validate service is working
-          command: curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:8080/contacts/test
+          command: sleep 6; curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:8080/contacts/test
 
       - store_artifacts:
           path: /tmp/test-results
