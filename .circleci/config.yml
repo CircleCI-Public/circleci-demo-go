@@ -9,7 +9,7 @@ jobs:
           POSTGRES_USER: ubuntu
           POSTGRES_DB: contacts
 
-    working_directory: /go/src/github.com/circleci/cci-demo-go
+    working_directory: /go/src/github.com/CircleCI-Public/circleci-demo-go
 
     environment:
       TEST_RESULTS: /tmp/test-results
@@ -38,7 +38,7 @@ jobs:
           name: Run unit tests
           environment:
             CONTACTS_DB_URL: "postgres://ubuntu@localhost:5432/contacts?sslmode=disable"
-            CONTACTS_DB_MIGRATIONS: /go/src/github.com/circleci/cci-demo-go/db/migrations
+            CONTACTS_DB_MIGRATIONS: /go/src/github.com/CircleCI-Public/circleci-demo-go/db/migrations
           command: |
             trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
             make test | tee ${TEST_RESULTS}/go-test.out
@@ -49,13 +49,16 @@ jobs:
           name: Start service
           environment:
             CONTACTS_DB_URL: "postgres://ubuntu@localhost:5432/contacts?sslmode=disable"
-            CONTACTS_DB_MIGRATIONS: /go/src/github.com/circleci/cci-demo-go/db/migrations
+            CONTACTS_DB_MIGRATIONS: /go/src/github.com/CircleCI-Public/circleci-demo-go/db/migrations
           command: ./workdir/contacts
           background: true
 
       - run:
           name: Validate service is working
-          command: curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:8080/contacts/test
+          command: |
+            # We're using sleep because curl seems to be ignoring --retry-connrefused
+            sleep 5
+            curl --retry 10 --retry-delay 1 --retry-connrefused -X POST --header "Content-Type: application/json" -d '{"email":"test@example.com","name":"Test User"}' http://localhost:8080/contacts
 
       - store_artifacts:
           path: /tmp/test-results
