@@ -2,12 +2,13 @@ version: 2
 jobs:
   build:
     docker:
-      # using custom image, see .circleci/images/primary/Dockerfile
-      - image: circleci/cci-demo-go-primary:0.0.2
-      - image: postgres:9.4.1
+      # CircleCI Go images available at: https://hub.docker.com/r/circleci/golang/
+      - image: circleci/golang:1.8
+      # CircleCI PostgreSQL images available at: https://hub.docker.com/r/circleci/postgres/
+      - image: circleci/postgres:9.4.12-alpine
         environment:
-          POSTGRES_USER: ubuntu
-          POSTGRES_DB: contacts
+          POSTGRES_USER: root
+          POSTGRES_DB: circle_test
 
     working_directory: /go/src/github.com/CircleCI-Public/circleci-demo-go
 
@@ -16,7 +17,6 @@ jobs:
 
     steps:
       - checkout
-
       - run: mkdir -p $TEST_RESULTS
 
       # Normally, this step would be in a custom primary image;
@@ -37,7 +37,7 @@ jobs:
       - run:
           name: Run unit tests
           environment:
-            CONTACTS_DB_URL: "postgres://ubuntu@localhost:5432/contacts?sslmode=disable"
+            CONTACTS_DB_URL: "postgres://root@localhost:5432/circle_test?sslmode=disable"
             CONTACTS_DB_MIGRATIONS: /go/src/github.com/CircleCI-Public/circleci-demo-go/db/migrations
           command: |
             trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
@@ -48,7 +48,7 @@ jobs:
       - run:
           name: Start service
           environment:
-            CONTACTS_DB_URL: "postgres://ubuntu@localhost:5432/contacts?sslmode=disable"
+            CONTACTS_DB_URL: "postgres://root@localhost:5432/circle_test?sslmode=disable"
             CONTACTS_DB_MIGRATIONS: /go/src/github.com/CircleCI-Public/circleci-demo-go/db/migrations
           command: ./workdir/contacts
           background: true
@@ -56,9 +56,8 @@ jobs:
       - run:
           name: Validate service is working
           command: |
-            # We're using sleep because curl seems to be ignoring --retry-connrefused
             sleep 5
-            curl --retry 10 --retry-delay 1 --retry-connrefused -X POST --header "Content-Type: application/json" -d '{"email":"test@example.com","name":"Test User"}' http://localhost:8080/contacts
+            curl --retry 10 --retry-delay 1 -X POST --header "Content-Type: application/json" -d '{"email":"test@example.com","name":"Test User"}' http://localhost:8080/contacts
 
       - store_artifacts:
           path: /tmp/test-results
