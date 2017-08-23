@@ -1,0 +1,40 @@
+steps:
+  beta:
+    description: "trying out new runtime"
+    timeout: 600
+    count: 2
+    subjects:
+      - name: sleeper
+        image: lxfontes/cnci-sleep:dev
+        env:
+          SLEEP_SECS: "20"
+  test:
+    description: "Main test"
+    timeout: 600
+    count: 2
+    services:
+      - name: mysql
+        image: mysql
+        env:
+          MYSQL_RANDOM_ROOT_PASSWORD: "true"
+        tcp:
+          mysql: 3306
+        udp:
+          mysql: 3307
+    initializers:
+      - name: custom
+        image: lxfontes/cnci-job:dev
+    subjects:
+      - name: circleci
+        image: lxfontes/cnci-runner-circleci:dev
+        privileged: true
+
+queues:
+  main:
+    concurrency: 1
+    vars:
+      runner_image: base
+    steps:
+      - test
+      - beta
+
