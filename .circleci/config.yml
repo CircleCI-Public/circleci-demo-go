@@ -5,10 +5,12 @@ jobs:
       # CircleCI Go images available at: https://hub.docker.com/r/circleci/golang/
       - image: circleci/golang:1.8
       # CircleCI PostgreSQL images available at: https://hub.docker.com/r/circleci/postgres/
-      - image: circleci/postgres:9.4.12-alpine
+      - image: circleci/postgres:9.6-alpine
         environment:
-          POSTGRES_USER: root
+          POSTGRES_USER: circleci-demo-go
           POSTGRES_DB: circle_test
+
+    working_directory: /go/src/github.com/CircleCI-Public/circleci-demo-go
 
     environment:
       TEST_RESULTS: /tmp/test-results
@@ -19,6 +21,8 @@ jobs:
 
       # Normally, this step would be in a custom primary image;
       # we've added it here for the sake of explanation.
+      - run: go get github.com/lib/pq
+      - run: go get github.com/mattes/migrate
       - run: go get github.com/jstemmer/go-junit-report
 
       - run:
@@ -35,7 +39,7 @@ jobs:
       - run:
           name: Run unit tests
           environment:
-            CONTACTS_DB_URL: "postgres://root@localhost:5432/circle_test?sslmode=disable"
+            CONTACTS_DB_URL: "postgres://circleci-demo-go@localhost:5432/circle_test?sslmode=disable"
             CONTACTS_DB_MIGRATIONS: /go/src/github.com/CircleCI-Public/circleci-demo-go/db/migrations
           command: |
             trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
@@ -46,7 +50,7 @@ jobs:
       - run:
           name: Start service
           environment:
-            CONTACTS_DB_URL: "postgres://root@localhost:5432/circle_test?sslmode=disable"
+            CONTACTS_DB_URL: "postgres://circleci-demo-go@localhost:5432/circle_test?sslmode=disable"
             CONTACTS_DB_MIGRATIONS: /go/src/github.com/CircleCI-Public/circleci-demo-go/db/migrations
           command: ./workdir/contacts
           background: true
