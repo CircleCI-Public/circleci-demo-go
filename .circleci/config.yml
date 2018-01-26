@@ -10,8 +10,6 @@ jobs:
           POSTGRES_USER: root
           POSTGRES_DB: circle_test
 
-    working_directory: /go/src/github.com/CircleCI-Public/circleci-demo-go
-
     environment:
       TEST_RESULTS: /tmp/test-results
 
