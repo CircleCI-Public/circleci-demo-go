@@ -3,15 +3,12 @@ jobs: # basic units of work in a run
   build: # runs not using Workflows must have a `build` job as entry point
     docker: # run the steps with Docker
       # CircleCI Go images available at: https://hub.docker.com/r/circleci/golang/
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1.12
       # CircleCI PostgreSQL images available at: https://hub.docker.com/r/circleci/postgres/
       - image: circleci/postgres:9.6-alpine
         environment: # environment variables for primary container
           POSTGRES_USER: circleci-demo-go
           POSTGRES_DB: circle_test
-
-    # directory where steps are run. Path must conform to the Go Workspace requirements
-    working_directory: /go/src/github.com/CircleCI-Public/circleci-demo-go
 
     environment: # environment variables for the build itself
       TEST_RESULTS: /tmp/test-results # path to where test results will be saved
@@ -22,12 +19,12 @@ jobs: # basic units of work in a run
 
       - restore_cache: # restores saved cache if no changes are detected since last run
           keys:
-            - v1-pkg-cache
+            - go-mod-v1-{{ checksum "go.sum" }}
 
-      # Normally, this step would be in a custom primary image;
-      # we've added it here for the sake of explanation.
-      - run: go get github.com/lib/pq
-      - run: go get github.com/mattes/migrate
+      - run: 
+          name: Get dependencies
+          command: |
+            go get -v
       - run: go get github.com/jstemmer/go-junit-report
 
       #  Wait for Postgres to be ready before proceeding
@@ -39,7 +36,7 @@ jobs: # basic units of work in a run
           name: Run unit tests
           environment: # environment variables for the database url and path to migration files
             CONTACTS_DB_URL: "postgres://circleci-demo-go@localhost:5432/circle_test?sslmode=disable"
-            CONTACTS_DB_MIGRATIONS: /go/src/github.com/CircleCI-Public/circleci-demo-go/db/migrations
+            CONTACTS_DB_MIGRATIONS: /home/circleci/project/db/migrations
 
           # store the results of our tests in the $TEST_RESULTS directory
           command: |
@@ -48,16 +45,16 @@ jobs: # basic units of work in a run
 
       - run: make # pull and build dependencies for the project
 
-      - save_cache: # store cache in the /go/pkg directory
-          key: v1-pkg-cache
+      - save_cache:
+          key: go-mod-v1-{{ checksum "go.sum" }}
           paths:
-            - "/go/pkg"
+            - "~/go/pkg/mod"
 
       - run:
           name: Start service
           environment:
             CONTACTS_DB_URL: "postgres://circleci-demo-go@localhost:5432/circle_test?sslmode=disable"
-            CONTACTS_DB_MIGRATIONS: /go/src/github.com/CircleCI-Public/circleci-demo-go/db/migrations
+            CONTACTS_DB_MIGRATIONS: /home/circleci/project/db/migrations
           command: ./workdir/contacts
           background: true # keep service running and proceed to next step
 
