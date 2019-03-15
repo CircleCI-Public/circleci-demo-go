@@ -19,7 +19,7 @@ jobs: # basic units of work in a run
 
       - restore_cache: # restores saved cache if no changes are detected since last run
           keys:
-            - go-mod-v1-{{ checksum "go.sum" }}
+            - go-mod-v2-{{ checksum "go.sum" }}
 
       - run: 
           name: Get dependencies
@@ -27,9 +27,9 @@ jobs: # basic units of work in a run
             go get -v
 
       - save_cache:
-          key: go-mod-v1-{{ checksum "go.sum" }}
+          key: go-mod-v2-{{ checksum "go.sum" }}
           paths:
-            - "~/go/pkg/mod"
+            - "/go/pkg/mod"
 
       - run: go get github.com/jstemmer/go-junit-report
 
