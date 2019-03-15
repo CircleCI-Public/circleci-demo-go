@@ -30,18 +30,10 @@ jobs: # basic units of work in a run
       - run: go get github.com/mattes/migrate
       - run: go get github.com/jstemmer/go-junit-report
 
-      #  CircleCi's Go Docker image includes netcat
-      #  this allows polling the DB port to confirm it is open before proceeding
+      #  Wait for Postgres to be ready before proceeding
       - run:
           name: Waiting for Postgres to be ready
-          command: |
-            for i in `seq 1 10`;
-            do
-              nc -z localhost 5432 && echo Success && exit 0
-              echo -n .
-              sleep 1
-            done
-            echo Failed waiting for Postgres && exit 1
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
 
       - run:
           name: Run unit tests
