@@ -25,6 +25,12 @@ jobs: # basic units of work in a run
           name: Get dependencies
           command: |
             go get -v
+
+      - save_cache:
+          key: go-mod-v1-{{ checksum "go.sum" }}
+          paths:
+            - "~/go/pkg/mod"
+
       - run: go get github.com/jstemmer/go-junit-report
 
       #  Wait for Postgres to be ready before proceeding
@@ -44,11 +50,6 @@ jobs: # basic units of work in a run
             make test | tee ${TEST_RESULTS}/go-test.out
 
       - run: make # pull and build dependencies for the project
-
-      - save_cache:
-          key: go-mod-v1-{{ checksum "go.sum" }}
-          paths:
-            - "~/go/pkg/mod"
 
       - run:
           name: Start service
