@@ -10,6 +10,8 @@ jobs: # basic units of work in a run
           POSTGRES_USER: circleci-demo-go
           POSTGRES_DB: circle_test
 
+    parallelism: 2
+
     environment: # environment variables for the build itself
       TEST_RESULTS: /tmp/test-results # path to where test results will be saved
 
@@ -26,13 +28,6 @@ jobs: # basic units of work in a run
           command: |
             go get -v
 
-      - run: 
-          name: Get go-junit-report for setting up test timings on CircleCI
-          command: |
-            go get github.com/jstemmer/go-junit-report
-            # Remove go-junit-report from go.mod
-            go mod tidy
-
       #  Wait for Postgres to be ready before proceeding
       - run:
           name: Waiting for Postgres to be ready
@@ -46,8 +41,8 @@ jobs: # basic units of work in a run
 
           # store the results of our tests in the $TEST_RESULTS directory
           command: |
-            trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
-            make test | tee ${TEST_RESULTS}/go-test.out
+            PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
+            gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- $PACKAGE_NAMES
 
       - run: make # pull and build dependencies for the project
 
