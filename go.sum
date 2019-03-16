@@ -1,5 +1,3 @@
-github.com/CircleCI-Public/circleci-demo-go v0.0.0-20190315120700-e72fa418462e h1:B1wAVuarQgOY962HpE4msDWszy+eBMUSsxjCG+06ozc=
-github.com/CircleCI-Public/circleci-demo-go v0.0.0-20190315120700-e72fa418462e/go.mod h1:33fcRWC41k+tfvZUm1ZxjUAropSngqU/TLME1rTpsR4=
 github.com/cznic/b v0.0.0-20180115125044-35e9bbe41f07 h1:UHFGPvSxX4C4YBApSPvmUfL8tTvWLj2ryqvT9K4Jcuk=
 github.com/cznic/b v0.0.0-20180115125044-35e9bbe41f07/go.mod h1:URriBxXwVq5ijiJ12C7iIZqlA69nTlI+LgI6/pwftG8=
 github.com/cznic/fileutil v0.0.0-20180108211300-6a051e75936f h1:7uSNgsgcarNk4oiN/nNkO0J7KAjlsF5Yv5Gf/tFdHas=
