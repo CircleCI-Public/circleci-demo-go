@@ -3,7 +3,7 @@ jobs: # basic units of work in a run
   build: # runs not using Workflows must have a `build` job as entry point
     docker: # run the steps with Docker
       # CircleCI Go images available at: https://hub.docker.com/r/circleci/golang/
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
       # CircleCI PostgreSQL images available at: https://hub.docker.com/r/circleci/postgres/
       - image: circleci/postgres:9.6-alpine
         environment: # environment variables for primary container
@@ -66,8 +66,27 @@ jobs: # basic units of work in a run
 
       - store_test_results: # upload test results for display in Test Summary
           path: /tmp/test-results
+  push-master-images:
+    docker:
+      - image: circleci/golang:1.13
+    parallelism: 1
+    steps:
+      - run: |
+          ls -l 
+          runpwd
+          echo "this must only be executed for master branch"
+anchors:
+  branch_filters: &run_for_master_branch
+    filters:
+      branches:
+        ignore: /.*/
+        only: /master/
 workflows:
   version: 2
   build-workflow:
     jobs:
       - build
+      - push-master-images:
+          <<: *run_for_master_branch
+          requires:
+            - build
