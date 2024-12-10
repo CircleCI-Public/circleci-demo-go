@@ -1,15 +1,20 @@
-version: 2 # use CircleCI 2.0
+version: 2.1
 
 orbs:
   snyk: snyk/snyk@2.2.0
+
+executors:
+  go:
+    docker:
+      - image: cimg/go:1.23
 
 jobs: # basic units of work in a run
   build: # runs not using Workflows must have a `build` job as entry point
     docker: # run the steps with Docker
       # CircleCI Go images available at: https://hub.docker.com/r/circleci/golang/
-      - image: circleci/golang:1.12
+      - image: cimg/go:1.23
       # CircleCI PostgreSQL images available at: https://hub.docker.com/r/circleci/postgres/
-      - image: circleci/postgres:9.6-alpine
+      - image: cimg/postgres:17.0
         environment: # environment variables for primary container
           POSTGRES_USER: circleci-demo-go
           POSTGRES_DB: circle_test
@@ -90,7 +95,6 @@ jobs: # basic units of work in a run
           additional-arguments: "--all-projects"
 
 workflows:
-  version: 2
   build-workflow:
     jobs:
       - build
